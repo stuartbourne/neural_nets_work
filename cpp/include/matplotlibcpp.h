@@ -12,7 +12,7 @@
 
 #include <Python/Python.h>
 
-#define WITHOUT_NUMPY
+#define WITHOUT_NUMPY   //This is required. I'm not sure why as I have a working version of numpy
 #ifndef WITHOUT_NUMPY
 #  define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #  include "/usr/local/include/numpy/arrayobject.h" 

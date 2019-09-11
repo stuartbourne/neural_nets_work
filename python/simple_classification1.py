@@ -7,8 +7,11 @@ labels = labels.reshape(5, 1)
 
 #lets generate random weights and biases for the start
 np.random.seed(42)
-weights = np.random.rand(3, 1)
-bias = np.random.rand(1)
+#weights = np.random.rand(3, 1)
+weights = np.array([0.23, 0.88, 0.42])
+weights = weights.reshape(3, 1)
+#bias = np.random.rand(1)
+bias = 2
 lr = 0.05
 
 def sigmoid(x):
@@ -42,6 +45,6 @@ for epoch in range(2000):
     for num in z_delta:
         bias -= lr * num
 
-single_point = np.array([0, 0, 0])
+single_point = np.array([0, 1, 0])
 result = sigmoid(np.dot(single_point, weights) + bias)
 print (result)

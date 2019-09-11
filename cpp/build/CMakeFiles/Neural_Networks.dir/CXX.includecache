@@ -36,10 +36,6 @@ Python/Python.h
 opencv2/opencv.hpp
 -
 
-/Users/stuartbourne/Documents/personal_development/neural_nets/cpp/src/Neuron.cpp
-Neuron.hpp
--
-
 /Users/stuartbourne/Documents/personal_development/neural_nets/cpp/src/main.cpp
 iostream
 -
@@ -47,8 +43,14 @@ Neuron.hpp
 -
 Eigen/Dense
 -
+math.h
+-
 matplotlibcpp.h
-/Users/stuartbourne/Documents/personal_development/neural_nets/cpp/src/matplotlibcpp.h
+-
+stdlib.h
+-
+time.h
+-
 
 /usr/local/include/eigen3/Eigen/Cholesky
 Core
