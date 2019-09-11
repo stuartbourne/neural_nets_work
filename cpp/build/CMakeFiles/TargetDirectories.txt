@@ -1,0 +1,3 @@
+/Users/stuartbourne/Documents/personal_development/neural_nets/cpp/build/CMakeFiles/rebuild_cache.dir
+/Users/stuartbourne/Documents/personal_development/neural_nets/cpp/build/CMakeFiles/edit_cache.dir
+/Users/stuartbourne/Documents/personal_development/neural_nets/cpp/build/CMakeFiles/Neural_Networks.dir
