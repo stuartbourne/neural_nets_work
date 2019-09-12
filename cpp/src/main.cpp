@@ -63,13 +63,30 @@ int main(int argc, char** argv){
             bias -= learning_rate * dcost_dz;
         }    
     }
+    std::cout << "\nbias: " << bias << "\nweights: " << weights;
     Eigen::Vector3d single_point(0, 1, 0);
     std::cout << sigmoid(weights.dot(single_point) + bias);
 
     using namespace sb_nn;
-    Neuron n(0,0, ActivationType());
-    std::vector<int> a{0};
-    std::vector<double> b{1};
-    n.train(a, b);
+    Neuron<double, double> n(0,0, ActivationFunction::SIGMOID);
+    n.add_input(0.23);  //add the inputs and their weights
+    n.add_input(0.88);
+    n.add_input(0.42);
+
+    std::vector<std::vector<double>> training_inputs;
+    training_inputs.push_back({0, 1, 0});
+    training_inputs.push_back({0, 0, 1});
+    training_inputs.push_back({1, 0, 0});
+    training_inputs.push_back({1, 1, 0});
+    training_inputs.push_back({1, 1, 1});
+    
+    std::vector<std::vector<double>> training_outputs;
+    training_outputs.push_back({1});
+    training_outputs.push_back({0});
+    training_outputs.push_back({0});
+    training_outputs.push_back({1});
+    training_outputs.push_back({1});
+    n.add_training_data(training_inputs, training_outputs);
+    n.train();
     return 0;
 }
