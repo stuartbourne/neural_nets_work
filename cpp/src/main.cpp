@@ -65,5 +65,11 @@ int main(int argc, char** argv){
     }
     Eigen::Vector3d single_point(0, 1, 0);
     std::cout << sigmoid(weights.dot(single_point) + bias);
+
+    using namespace sb_nn;
+    Neuron n(0,0, ActivationType());
+    std::vector<int> a{0};
+    std::vector<double> b{1};
+    n.train(a, b);
     return 0;
 }

@@ -9,6 +9,8 @@
 ../include/Neuron.hpp
 iostream
 -
+vector
+-
 
 ../include/matplotlibcpp.h
 vector
@@ -34,6 +36,10 @@ Python/Python.h
 /usr/local/include/numpy/arrayobject.h
 -
 opencv2/opencv.hpp
+-
+
+/Users/stuartbourne/Documents/personal_development/neural_nets/cpp/src/Neuron.cpp
+Neuron.hpp
 -
 
 /Users/stuartbourne/Documents/personal_development/neural_nets/cpp/src/main.cpp
