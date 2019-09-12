@@ -22,12 +22,12 @@ int main(int argc, char** argv){
     training_inputs.push_back({1, 1, 0});
     training_inputs.push_back({1, 1, 1});
     
-    std::vector<std::vector<double>> training_outputs;
-    training_outputs.push_back({1});
-    training_outputs.push_back({0});
-    training_outputs.push_back({0});
-    training_outputs.push_back({1});
-    training_outputs.push_back({1});
+    std::vector<double> training_outputs;
+    training_outputs.push_back(1);
+    training_outputs.push_back(0);
+    training_outputs.push_back(0);
+    training_outputs.push_back(1);
+    training_outputs.push_back(1);
     n.add_training_data(training_inputs, training_outputs);
     n.train();
     return 0;

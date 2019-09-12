@@ -15,11 +15,11 @@ const bool Neuron<I, O>::add_input(I input_weight){
 
 template <typename I, typename O>
 const bool Neuron<I, O>::add_training_data( std::vector<std::vector<I>> input_training_data,
-                                            std::vector<std::vector<O>> output_training_data){
+                                            std::vector<O> output_training_data){
     //check to make sure the dimensionality matches the amount of input lines
-    assert(input_training_data.size() == output_training_data.size() && "Dimensionality of input data must match dimensionality of neuron inputs!");
+    assert(input_training_data.size() == output_training_data.size() && "Dimensionality of input data must match dimensionality of the output data!");
     for (auto &in : input_training_data){
-        assert(in.size() == input_weights_.size());
+        assert(in.size() == input_weights_.size() && "Dimensionality of input data must match dimensionality of the neuron inputs!" ); 
     }
     training_set_in_ = input_training_data;
     training_set_out_ = output_training_data;
@@ -35,6 +35,19 @@ const double Neuron<I, O>::feed_forward(std::vector<I> weights, std::vector<I> v
 }
 
 template <typename I, typename O>
+const double Neuron<I, O>::backpropagate(O desired_output, double activation_out){
+    //Calculate the output error relative to the output of the activation functions
+    double error = activation_out - desired_output;
+    //Now lets evaluate the change in cost relative to weight and minimize that 
+    //we will do this using the chain rule by calculating dcost/dprediction and multiplying with dprediction/dz
+    //backpropagation step 2
+    double dcost_dpred = error;
+    double dpred_dz = sigmoid_d1(activation_out); 
+    double dcost_dz = dcost_dpred * dpred_dz;
+    return dcost_dz;
+}
+
+template <typename I, typename O>
 const bool Neuron<I, O>::train(){
     //should check dimensionality of input data to ensure it is the proper dimensions...
     std::cout << "Training data...." << std::endl;
@@ -47,13 +60,7 @@ const bool Neuron<I, O>::train(){
         for (size_t j = 0; j < training_set_in_.size(); ++j){
             double z = feed_forward(input_weights_, training_set_in_.at(j), bias_);
             //Now start the backpropagation by first calculating the error
-            double error = z - training_set_out_.at(j).at(0);
-            //Now lets evaluate the change in cost relative to weight and minimize that 
-            //we will do this using the chain rule by calculating dcost/dprediction and multiplying with dprediction/dz
-            //backpropagation step 2
-            double dcost_dpred = error;
-            double dpred_dz = sigmoid_d1(z); 
-            double dcost_dz = dcost_dpred * dpred_dz;
+            double dcost_dz = backpropagate(training_set_out_.at(j), z);
             //Now we've got the desired rate of change, lets apply it to our weights and biases
             //now apply that calculated change to the weights and bias
             for (size_t p = 0; p < input_weights_.size(); ++p){
@@ -89,7 +96,8 @@ const double dot(std::vector<I> v1, std::vector<I> v2){
 }
 
 //explicitly define template types that are able to be used
-//This allows for implementaiton and definition to be separated and ensures type safety
+//This allows for implementaiton and definition to be separated and ensures
+//type safety across class functions
 template class sb_nn::Neuron<int, int>;
 template class sb_nn::Neuron<double, double>;
 template class sb_nn::Neuron<int, double>;
