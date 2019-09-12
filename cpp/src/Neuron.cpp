@@ -9,7 +9,6 @@ const double dot(std::vector<I> v1, std::vector<I> v2);
 
 template <typename I, typename O>
 const bool Neuron<I, O>::add_input(I input_weight){
-    std::cout << "Adding an input" << std::endl;
     input_weights_.push_back(input_weight);
     return true;
 } 
@@ -26,6 +25,14 @@ const bool Neuron<I, O>::add_training_data( std::vector<std::vector<I>> input_tr
     training_set_out_ = output_training_data;
     return true;
 }
+template <typename I, typename O>
+const double Neuron<I, O>::feed_forward(std::vector<I> weights, std::vector<I> values, I bias){
+    //for each input, we'll want to compute w1x1 + w2x2 + w3x3 + bias
+    double activation_in = dot<I>(weights, values) + bias;
+    //now compute activation energy TODO in future, use passed in activation type
+    double activation_out = sigmoid(activation_in);
+    return activation_out;
+}
 
 template <typename I, typename O>
 const bool Neuron<I, O>::train(){
@@ -38,10 +45,7 @@ const bool Neuron<I, O>::train(){
     }
     for (unsigned int i= 0; i < num_epochs_; ++i){
         for (size_t j = 0; j < training_set_in_.size(); ++j){
-            //for each input, we'll want to compute w1x1 + w2x2 + w3x3 + bias
-            double XW = dot<I>(input_weights_, training_set_in_.at(j)) + bias_;
-            //now compute activation energy TODO in future, use passed in activation type
-            double z = sigmoid(XW);
+            double z = feed_forward(input_weights_, training_set_in_.at(j), bias_);
             //Now start the backpropagation by first calculating the error
             double error = z - training_set_out_.at(j).at(0);
             //Now lets evaluate the change in cost relative to weight and minimize that 
@@ -58,10 +62,9 @@ const bool Neuron<I, O>::train(){
             
             bias_ -= learning_rate_ * dcost_dz;
         }
-        // std::cout << "bias2: " << bias_ << "\nweights: " << input_weights_.at(0) << "\n" << input_weights_.at(1) << "\n";
-
     }
-    std::cout << "bias2: " << bias_ << "\nweights: " << input_weights_.at(0) << "\n" << input_weights_.at(1) << "\n";
+    std::vector<I> testing_point{0, 1, 0};
+    std::cout << feed_forward(input_weights_, testing_point, bias_);
     return true;
 } 
 

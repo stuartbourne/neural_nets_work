@@ -50,8 +50,6 @@ int main(int argc, char** argv){
             //backpropagation step 1
             double error = z - labels.at(i);
             error_sum += error; 
-            if (i % input_features.size() == 0)
-                std::cout << "error: " << error_sum << std::endl;
             //Now lets evaluate the change in cost relative to weight and minimize that 
             //we will do this using the chain rule by calculating dcost/dprediction and multiplying with dprediction/dz
             //backpropagation step 2
@@ -63,9 +61,8 @@ int main(int argc, char** argv){
             bias -= learning_rate * dcost_dz;
         }    
     }
-    std::cout << "\nbias: " << bias << "\nweights: " << weights;
     Eigen::Vector3d single_point(0, 1, 0);
-    std::cout << sigmoid(weights.dot(single_point) + bias);
+    std::cout << sigmoid(weights.dot(single_point) + bias) << "\n";
 
     using namespace sb_nn;
     Neuron<double, double> n(2, 0.05, ActivationFunction::SIGMOID);

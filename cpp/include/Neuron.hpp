@@ -31,6 +31,7 @@ namespace sb_nn{
             const bool add_training_data(   std::vector<std::vector<I>> input_training_data,
                                             std::vector<
                                             std::vector<O>> output_training_data);
+            const double feed_forward(std::vector<I> weights, std::vector<I> values, I bias);
         private:
             double bias_;
             double learning_rate_;
