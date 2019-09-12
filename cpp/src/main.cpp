@@ -68,7 +68,7 @@ int main(int argc, char** argv){
     std::cout << sigmoid(weights.dot(single_point) + bias);
 
     using namespace sb_nn;
-    Neuron<double, double> n(0,0, ActivationFunction::SIGMOID);
+    Neuron<double, double> n(2, 0.05, ActivationFunction::SIGMOID);
     n.add_input(0.23);  //add the inputs and their weights
     n.add_input(0.88);
     n.add_input(0.42);

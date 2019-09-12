@@ -58,6 +58,8 @@ const bool Neuron<I, O>::train(){
             
             bias_ -= learning_rate_ * dcost_dz;
         }
+        // std::cout << "bias2: " << bias_ << "\nweights: " << input_weights_.at(0) << "\n" << input_weights_.at(1) << "\n";
+
     }
     std::cout << "bias2: " << bias_ << "\nweights: " << input_weights_.at(0) << "\n" << input_weights_.at(1) << "\n";
     return true;
