@@ -6,6 +6,10 @@
 
 #IncludeRegexTransform: 
 
+../include/NeuralNet.hpp
+Neuron.hpp
+-
+
 ../include/Neuron.hpp
 iostream
 -
@@ -42,14 +46,10 @@ Python/Python.h
 opencv2/opencv.hpp
 -
 
-/Users/stuartbourne/Documents/personal_development/neural_nets/cpp/src/Neuron.cpp
-Neuron.hpp
--
-type_traits
--
-
 /Users/stuartbourne/Documents/personal_development/neural_nets/cpp/src/main.cpp
 iostream
+-
+NeuralNet.hpp
 -
 Neuron.hpp
 -

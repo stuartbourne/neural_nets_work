@@ -5,6 +5,7 @@ CMakeFiles/Neural_Networks.dir/src/Neuron.cpp.o
  ../include/Neuron.hpp
  /Users/stuartbourne/Documents/personal_development/neural_nets/cpp/src/Neuron.cpp
 CMakeFiles/Neural_Networks.dir/src/main.cpp.o
+ ../include/NeuralNet.hpp
  ../include/Neuron.hpp
  ../include/matplotlibcpp.h
  /Users/stuartbourne/Documents/personal_development/neural_nets/cpp/src/main.cpp
