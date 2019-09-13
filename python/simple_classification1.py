@@ -7,11 +7,11 @@ plt.scatter(feature_set[:,0], feature_set[:, 1])
 labels = np.array([1, 0, 0, 1, 1])
 labels = labels.reshape(5, 1)
 # plt.plot(labels)
-plt.show()
+#plt.show()
 #lets generate random weights and biases for the start
 np.random.seed(42)
 #weights = np.random.rand(3, 1)
-weights = np.array([0.23, 0.88])
+weights = np.array([2, 2])
 weights = weights.reshape(2, 1)
 #bias = np.random.rand(1)
 bias = 2
@@ -24,7 +24,7 @@ def sigmoid_der(x):
     return sigmoid(x) * (1 - sigmoid(x))
 
 #l now lets actually train
-for epoch in range(2000):
+for epoch in range(1):
     inputs = feature_set
 
     #feedforward step 1
@@ -32,7 +32,8 @@ for epoch in range(2000):
 
     #feedforward step 2
     z = sigmoid(XW)
-
+    print("z:\n", z)
+    print("bias:\n", bias)
     #backprop step 1
     error = z - labels
 

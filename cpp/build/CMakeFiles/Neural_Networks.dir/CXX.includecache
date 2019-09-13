@@ -9,6 +9,8 @@
 ../include/NeuralNet.hpp
 Neuron.hpp
 -
+stdlib.h
+-
 
 ../include/Neuron.hpp
 iostream

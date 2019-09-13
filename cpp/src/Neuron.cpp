@@ -63,6 +63,6 @@ const double dot(std::vector<I> v1, std::vector<I> v2){
 //explicitly define template types that are able to be used
 //This allows for implementaiton and definition to be separated and ensures
 //type safety across class functions
-template class sb_nn::Neuron<int, int>;
-template class sb_nn::Neuron<int, double>;
+// template class sb_nn::Neuron<int, int>;
+// template class sb_nn::Neuron<int, double>;
 template class sb_nn::Neuron<double, double>;

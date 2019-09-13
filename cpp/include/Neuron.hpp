@@ -5,8 +5,6 @@
 #include <math.h>
 #include <optional>
 
-class NeuralNet;
-
 namespace sb_nn{
     enum ActivationFunction : char {
         SIGMOID = 's',
@@ -25,13 +23,12 @@ namespace sb_nn{
             Neuron() : bias_(0), activation_fn_(ActivationFunction::SIGMOID) {};
             const bool add_neuron_input(NeuronInput input);
             const bool set_neuron_values(std::vector<I> values);
-            friend NeuralNet;
-
-        protected:
+            const bool activate();  //calculates the dot product of inputs/weights and passes through
             double bias_;
             double activation_energy_;
+
+        protected:
             std::vector<NeuronInput> neuron_inputs_;      //Define the weights to the neuron
-            const bool activate();  //calculates the dot product of inputs/weights and passes through
             const double sigmoid_d1(const double);
             const double sigmoid(const double);
             

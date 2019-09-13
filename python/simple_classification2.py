@@ -23,7 +23,7 @@ def sigmoid_d1(x):
 wh = np.random.rand(len(feature_set[0]), 4)
 #weights to the output layer
 wo = np.random.rand(4, 1)
-lr = 0.01
+lr = 0.5
 
 def feed_forward(x_test, y_test, wh, wo):
     ao_list = []

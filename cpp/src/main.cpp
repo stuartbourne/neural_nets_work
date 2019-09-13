@@ -16,10 +16,24 @@ int main(int argc, char** argv){
     // n.add_neuron_input(in);
     //n.set_neuron_values({1});
     //n.activate();
-    NeuralNet<double, double> nn(200, 0.05);
-    nn.set_feature_num(2);  //two input features
-    nn.set_hidden_neuron_num(2);
-    nn.train();
+    
+    std::vector<std::vector<double>> training_data_in;
+    std::vector<double> training_data_out;
+    training_data_in.push_back({0, 1});
+    training_data_in.push_back({0, 0});
+    training_data_in.push_back({1, 0});
+    training_data_in.push_back({1, 1});
+    training_data_in.push_back({1, 1});
+    training_data_out.push_back(1);
+    training_data_out.push_back(0);
+    training_data_out.push_back(0);
+    training_data_out.push_back(1);
+    training_data_out.push_back(1);
+    NeuralNet<double, double> nn(1, 0.05);
+    nn.set_feature_num(2);  //three input features
+    nn.initialize_hidden_neurons(1);    //two inputs, 1 hidden neuron
+    nn.set_training_data(training_data_in, training_data_out);
+    nn.train_network();
     // std::cout << "Activation energy: " << n.activation_energy_ << "\n";
     return 0;
 }
