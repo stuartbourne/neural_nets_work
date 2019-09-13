@@ -7,14 +7,15 @@ namespace sb_nn{
     enum ActivationFunction : char {
         SIGMOID = 's',
     };
-
+    struct NeuronInput{
+        double weight;
+        std::optional<double> value = std::nullopt;
+    };
     template <typename I, typename O>
     class Neuron{
-        struct NeuronInput{
-            I weight;
-            std::optional<I> value = std::nullopt;
-        };
+        //typedef NeuronInput std::pair<I, std::optional<I>>;
         public:
+
             Neuron( double bias, double learning_rate, ActivationFunction type) : 
                     bias_(bias),
                     activation_fn_(type) {};
@@ -22,8 +23,8 @@ namespace sb_nn{
             const bool set_neuron_values(std::vector<I> values);
         
         protected:
-            const bool activate();  //calculates the dot product of inputs/weights and passes through
             double bias_;
+            const bool activate();  //calculates the dot product of inputs/weights and passes through
             std::vector<NeuronInput> neuron_inputs_;      //Define the weights to the neuron
             double activation_energy_;
             const double sigmoid_d1(const double);

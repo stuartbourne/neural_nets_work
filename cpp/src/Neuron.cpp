@@ -33,8 +33,8 @@ const bool Neuron<I, O>::set_neuron_values(std::vector<I> values){
 template <typename I, typename O>
 const bool Neuron<I, O>::activate(){
     //for each input, we'll want to compute w1x1 + w2x2 + w3x3 + bias
-    std::vector<I> input_weights;
-    std::vector<I> input_values;
+    std::vector<double> input_weights;
+    std::vector<double> input_values;
     for (auto &input : neuron_inputs_){
         if (input.value == std::nullopt){
             std::cerr << "Input value is null! Cannot activate neuron!" <<std::endl;
@@ -43,7 +43,7 @@ const bool Neuron<I, O>::activate(){
         input_values.push_back(*input.value);
         input_weights.push_back(input.weight);
     }
-    double activation_in = dot<I>(input_weights, input_values) + bias_;
+    double activation_in = dot<double>(input_weights, input_values) + bias_;
     //now compute activation energy TODO in future, use passed in activation type
     activation_energy_ = sigmoid(activation_in);
     return true;
