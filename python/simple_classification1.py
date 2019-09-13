@@ -11,10 +11,10 @@ labels = labels.reshape(5, 1)
 #lets generate random weights and biases for the start
 np.random.seed(42)
 #weights = np.random.rand(3, 1)
-weights = np.array([2, 2])
+weights = np.array([2.0, 2.0])
 weights = weights.reshape(2, 1)
 #bias = np.random.rand(1)
-bias = 2
+bias = 2.0
 lr = 0.05
 
 def sigmoid(x):
@@ -32,12 +32,9 @@ for epoch in range(1):
 
     #feedforward step 2
     z = sigmoid(XW)
-    print("z:\n", z)
-    print("bias:\n", bias)
     #backprop step 1
     error = z - labels
 
-    print("error: ", error.sum())
     #backprop step 2
     dcost_dpred =error
     dpred_dz = sigmoid_der(z)
@@ -45,10 +42,11 @@ for epoch in range(1):
     z_delta = dcost_dpred * dpred_dz
     inputs = feature_set.T
     weights -= lr * np.dot(inputs, z_delta)
+    print("weight:\n", weights)
 
     for num in z_delta:
         bias -= lr * num
+    print ("bias:\n", bias)
 
 single_point = np.array([0, 1])
 result = sigmoid(np.dot(single_point, weights) + bias)
-print (result)

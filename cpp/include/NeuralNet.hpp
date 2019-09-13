@@ -26,7 +26,7 @@ namespace sb_nn{
             std::vector<Neuron<I,O>> hidden_neurons_;
             std::vector<I> network_inputs_;     //inputs will simply be a vector of the specified input type
             const bool feed_forward(std::vector<I> data_in);
-            const bool backpropagate();
+            const bool backpropagate(O desired_output);
     };
 
     template <typename I, typename O>
@@ -81,9 +81,11 @@ namespace sb_nn{
             std::cout << "No training data supplied!" << std::endl;
             return false;
         }
+        assert(training_set_in_.size() == training_set_out_.size());
         for (unsigned int i= 0; i < num_epochs_; ++i){
             for (size_t j = 0; j < training_set_in_.size(); ++j){
                 feed_forward(training_set_in_.at(j));
+                backpropagate(training_set_out_.at(j));
                 /*
                 //for now we will assume three layers (input, hidden, output) for simplicity
                 double z = feed_forward(input_weights_, training_set_in_.at(j), bias_);
@@ -127,21 +129,42 @@ namespace sb_nn{
         //TODO refactor to put this somewhere else
         assert( network_inputs.size() == num_features_ && 
                 "Input training data must match number of network inputs!");
+        std::vector<O> output_values;
         for (auto &hidden_neuron : hidden_neurons_){
             //Now we set the inputs for each hidden neuron
             hidden_neuron.set_neuron_values(network_inputs);
             //Now the hidden neurons have weights and values, should fire them.
             hidden_neuron.activate();
+            //output_values.push_back(hidden_neuron.activation_energy_);
         }
         //Now we need to set the neurons in the output layer to have the inputs of the neurons in the hidden layer
         return true;
     }
 
     template <typename I, typename O>
-    const bool NeuralNet<I, O>::backpropagate(){
-        /*
+    const bool NeuralNet<I, O>::backpropagate(O desired_output){
+        //for now we'll start with one hidden neuron
         //Calculate the output error relative to the output of the activation functions
-        double error = activation_out - desired_output;
+        if (hidden_neurons_.size() <= 0){
+            std::cerr << "Cannot backpropagate an empty network!" << std::endl;
+        }
+        Neuron<I, O> output_neuron = hidden_neurons_.at(0);  //TODO make this more generic for multilayered networks
+
+        O error = output_neuron.activation_energy_ - desired_output;
+        O dcost_dpred = error;
+        O dpred_dz = output_neuron.sigmoid_d1(output_neuron.activation_energy_);
+        O dcost_dz = dcost_dpred * dpred_dz;
+        for (auto &input : output_neuron.neuron_inputs_){
+            //lets change each weight with respect to their input multiplied by the cost gradient 
+            input.weight -= learning_rate_ * (*input.value) * dcost_dz;
+            std::cout << "Weight: " << input.weight << std::endl;
+        }
+        output_neuron.bias_ -= learning_rate_ * dcost_dz;
+        std::cout << "Bias: " << output_neuron.bias_ << std::endl;
+        //now we have the gradient, we must change the neuron inputs by -= lr * (value * gradient)
+        /*
+        for neuron in hidden neuron (since we know there is only one)
+        
         //Now lets evaluate the change in cost relative to weight and minimize that 
         //we will do this using the chain rule by calculating dcost/dprediction and multiplying with dprediction/dz
         //backpropagation step 2

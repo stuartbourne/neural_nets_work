@@ -26,11 +26,11 @@ namespace sb_nn{
             const bool activate();  //calculates the dot product of inputs/weights and passes through
             double bias_;
             double activation_energy_;
-
-        protected:
             std::vector<NeuronInput> neuron_inputs_;      //Define the weights to the neuron
             const double sigmoid_d1(const double);
             const double sigmoid(const double);
+
+        protected:
             
         private:
             ActivationFunction activation_fn_;
