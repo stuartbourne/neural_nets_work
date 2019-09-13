@@ -13,6 +13,8 @@ vector
 -
 math.h
 -
+optional
+-
 
 /Users/stuartbourne/Documents/personal_development/neural_nets/cpp/src/Neuron.cpp
 Neuron.hpp

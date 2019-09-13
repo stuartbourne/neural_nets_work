@@ -9,7 +9,7 @@ namespace plt = matplotlibcpp;
 
 int main(int argc, char** argv){
 
-    using namespace sb_nn;
+    using namespace sb_nn;/*
     Neuron<double, double> n(2, 0.05, ActivationFunction::SIGMOID);
     n.add_input(0.23);  //add the inputs and their weights
     n.add_input(0.88);
@@ -29,6 +29,6 @@ int main(int argc, char** argv){
     training_outputs.push_back(1);
     training_outputs.push_back(1);
     n.add_training_data(training_inputs, training_outputs);
-    n.train();
+    n.train();*/
     return 0;
 }

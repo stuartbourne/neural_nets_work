@@ -23,7 +23,7 @@ def sigmoid_d1(x):
 wh = np.random.rand(len(feature_set[0]), 4)
 #weights to the output layer
 wo = np.random.rand(4, 1)
-lr = 0.05
+lr = 0.01
 
 def feed_forward(x_test, y_test, wh, wo):
     ao_list = []
@@ -38,7 +38,7 @@ def feed_forward(x_test, y_test, wh, wo):
     
     return ao_list
 
-for epoch in range(20000):
+for epoch in range(200000):
     #feedforward
     zh = np.dot(feature_set, wh)
     ah = sigmoid(zh)
