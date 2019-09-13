@@ -1,15 +1,18 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-feature_set = np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]])
+feature_set = np.array([[0, 1], [0, 0], [1, 0], [1, 1], [1, 1]])
+plt.figure(figsize=(10, 7))
+plt.scatter(feature_set[:,0], feature_set[:, 1])
 labels = np.array([1, 0, 0, 1, 1])
 labels = labels.reshape(5, 1)
-
+# plt.plot(labels)
+plt.show()
 #lets generate random weights and biases for the start
 np.random.seed(42)
 #weights = np.random.rand(3, 1)
-weights = np.array([0.23, 0.88, 0.42])
-weights = weights.reshape(3, 1)
+weights = np.array([0.23, 0.88])
+weights = weights.reshape(2, 1)
 #bias = np.random.rand(1)
 bias = 2
 lr = 0.05
@@ -45,6 +48,6 @@ for epoch in range(2000):
     for num in z_delta:
         bias -= lr * num
 
-single_point = np.array([0, 1, 0])
+single_point = np.array([0, 1])
 result = sigmoid(np.dot(single_point, weights) + bias)
 print (result)
