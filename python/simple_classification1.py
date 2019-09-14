@@ -41,12 +41,16 @@ for epoch in range(1):
 
     z_delta = dcost_dpred * dpred_dz
     inputs = feature_set.T
+    print("inputs: \n", inputs)
+    print("z_delta: \n", z_delta)
+    print("dot: \n", np.dot(inputs, z_delta))
     weights -= lr * np.dot(inputs, z_delta)
-    print("weight:\n", weights)
+    print("weights after: \n", weights)
 
     for num in z_delta:
         bias -= lr * num
-    print ("bias:\n", bias)
+    print("bias: ", bias)
+
 
 single_point = np.array([0, 1])
 result = sigmoid(np.dot(single_point, weights) + bias)

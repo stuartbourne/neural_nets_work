@@ -149,17 +149,19 @@ namespace sb_nn{
             std::cerr << "Cannot backpropagate an empty network!" << std::endl;
         }
         Neuron<I, O> output_neuron = hidden_neurons_.at(0);  //TODO make this more generic for multilayered networks
-
         O error = output_neuron.activation_energy_ - desired_output;
         O dcost_dpred = error;
         O dpred_dz = output_neuron.sigmoid_d1(output_neuron.activation_energy_);
         O dcost_dz = dcost_dpred * dpred_dz;
+        std::cout << "dcost_dz: " << dcost_dz << std::endl;
+        double weight_cost = 0;
         for (auto &input : output_neuron.neuron_inputs_){
             //lets change each weight with respect to their input multiplied by the cost gradient 
-            input.weight -= learning_rate_ * (*input.value) * dcost_dz;
-            std::cout << "Weight: " << input.weight << std::endl;
+            input.weight -= learning_rate_ * *input.value * dcost_dz;
         }
+        std::cout << "weight cost: " << weight_cost << std::endl;
         output_neuron.bias_ -= learning_rate_ * dcost_dz;
+        
         std::cout << "Bias: " << output_neuron.bias_ << std::endl;
         //now we have the gradient, we must change the neuron inputs by -= lr * (value * gradient)
         /*
@@ -173,7 +175,7 @@ namespace sb_nn{
         double dcost_dz = dcost_dpred * dpred_dz;
         return dcost_dz;
         */
-       return -1;
+       return true;
     }
 }
 #endif
