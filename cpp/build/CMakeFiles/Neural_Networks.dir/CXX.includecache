@@ -9,6 +9,8 @@
 ../include/NeuralNet.hpp
 Neuron.hpp
 -
+NeuronLayer.hpp
+-
 stdlib.h
 -
 
@@ -20,6 +22,10 @@ vector
 math.h
 -
 optional
+-
+
+../include/NeuronLayer.hpp
+Neuron.hpp
 -
 
 ../include/matplotlibcpp.h

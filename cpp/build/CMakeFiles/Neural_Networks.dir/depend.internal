@@ -7,6 +7,7 @@ CMakeFiles/Neural_Networks.dir/src/Neuron.cpp.o
 CMakeFiles/Neural_Networks.dir/src/main.cpp.o
  ../include/NeuralNet.hpp
  ../include/Neuron.hpp
+ ../include/NeuronLayer.hpp
  ../include/matplotlibcpp.h
  /Users/stuartbourne/Documents/personal_development/neural_nets/cpp/src/main.cpp
  /usr/local/include/eigen3/Eigen/Cholesky
