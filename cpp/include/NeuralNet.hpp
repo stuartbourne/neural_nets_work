@@ -26,7 +26,7 @@ namespace sb_nn{
             std::vector<Neuron<I,O>> hidden_neurons_;
             std::vector<I> network_inputs_;     //inputs will simply be a vector of the specified input type
             const bool feed_forward(std::vector<I> data_in);
-            const bool backpropagate(O desired_output);
+            const O backpropagate(O desired_output);
     };
 
     template <typename I, typename O>
@@ -85,21 +85,23 @@ namespace sb_nn{
         for (unsigned int i= 0; i < num_epochs_; ++i){
             for (size_t j = 0; j < training_set_in_.size(); ++j){
                 feed_forward(training_set_in_.at(j));
-                backpropagate(training_set_out_.at(j));
-                /*
-                //for now we will assume three layers (input, hidden, output) for simplicity
-                double z = feed_forward(input_weights_, training_set_in_.at(j), bias_);
-                //Now start the backpropagation by first calculating the error
-                double dcost_dz = backpropagate(training_set_out_.at(j), z);
+                double z_delta = backpropagate(training_set_out_.at(j));
+
                 //Now we've got the desired rate of change, lets apply it to our weights and biases
                 //now apply that calculated change to the weights and bias
-                for (size_t p = 0; p < input_weights_.size(); ++p){
-                    input_weights_.at(p) -= learning_rate_ * training_set_in_.at(j).at(p) * (dcost_dz);
+                for (auto &input : hidden_neurons_.at(0).neuron_inputs_){
+                    input.weight -= learning_rate_ * *input.value * z_delta;
                 }
+                hidden_neurons_.at(0).bias_ -= learning_rate_ * z_delta;
                 
-                bias_ -= learning_rate_ * dcost_dz;*/
+
             }
         }
+        //std::cout << "final bias: " << bias_;
+        
+        std::cout << "final bias: " << hidden_neurons_.at(0).bias_ << std::endl;
+        std::cout << "final weight 1: " << hidden_neurons_.at(0).neuron_inputs_.at(0).weight << std::endl;
+        std::cout << "final weight 2: " << hidden_neurons_.at(0).neuron_inputs_.at(1).weight << std::endl;
         std::vector<I> testing_point{0, 1, 0};
         //std::cout << feed_forward(input_weights_, testing_point, bias_);
         return true;
@@ -142,7 +144,7 @@ namespace sb_nn{
     }
 
     template <typename I, typename O>
-    const bool NeuralNet<I, O>::backpropagate(O desired_output){
+    const O NeuralNet<I, O>::backpropagate(O desired_output){
         //for now we'll start with one hidden neuron
         //Calculate the output error relative to the output of the activation functions
         if (hidden_neurons_.size() <= 0){
@@ -153,20 +155,9 @@ namespace sb_nn{
         O dcost_dpred = error;
         O dpred_dz = output_neuron.sigmoid_d1(output_neuron.activation_energy_);
         O dcost_dz = dcost_dpred * dpred_dz;
-        std::cout << "dcost_dz: " << dcost_dz << std::endl;
-        double weight_cost = 0;
-        for (auto &input : output_neuron.neuron_inputs_){
-            //lets change each weight with respect to their input multiplied by the cost gradient 
-            input.weight -= learning_rate_ * *input.value * dcost_dz;
-        }
-        std::cout << "weight cost: " << weight_cost << std::endl;
-        output_neuron.bias_ -= learning_rate_ * dcost_dz;
-        
-        std::cout << "Bias: " << output_neuron.bias_ << std::endl;
+
         //now we have the gradient, we must change the neuron inputs by -= lr * (value * gradient)
         /*
-        for neuron in hidden neuron (since we know there is only one)
-        
         //Now lets evaluate the change in cost relative to weight and minimize that 
         //we will do this using the chain rule by calculating dcost/dprediction and multiplying with dprediction/dz
         //backpropagation step 2
@@ -175,7 +166,7 @@ namespace sb_nn{
         double dcost_dz = dcost_dpred * dpred_dz;
         return dcost_dz;
         */
-       return true;
+       return dcost_dz;
     }
 }
 #endif
