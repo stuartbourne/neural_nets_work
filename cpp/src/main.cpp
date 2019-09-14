@@ -31,7 +31,7 @@ int main(int argc, char** argv){
     training_data_out.push_back(1);
     NeuralNet<double> nn(1, 0.05);
     nn.set_feature_num(3);  //three input features
-    nn.initialize_hidden_neurons(1);    //two inputs, 1 hidden neuron
+    //nn.initialize_hidden_neurons(1);  
     nn.set_training_data(training_data_in, training_data_out);
     nn.train_network();
     // std::cout << "Activation energy: " << n.activation_energy_ << "\n";
