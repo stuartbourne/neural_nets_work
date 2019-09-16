@@ -7,6 +7,7 @@
 namespace sb_nn{
     template <typename T>
     class NeuralNet{
+        typedef std::vector<Neuron<T>> hidden_layer;
         public:
             NeuralNet(const int num_epochs, const double learning_rate) : 
                                             num_epochs_(num_epochs), 
@@ -20,6 +21,10 @@ namespace sb_nn{
             const bool train_network();   //This uses the previously gathered input and output data sets to train the weights/bias
             const bool set_training_data(   std::vector<std::vector<T>> input_training_data,
                                             std::vector<T> output_training_data);
+            const T fire_network(std::vector<T> input){
+                feed_forward(input);
+                return output_neuron_.activation_energy_;
+            }
 
         private:
             int num_features_;
@@ -28,9 +33,9 @@ namespace sb_nn{
             std::vector<std::vector<T>> training_set_in_;
             std::vector<T> training_set_out_;
             // NeuronLayer<T> input_neurons_;
-            // NeuronLayer<T> hidden_neurons_;
+            //NeuronLayer<T> hidden_neurons_;
             // NeuronLayer<T> output_neurons_;
-            std::vector<Neuron<T>> hidden_neurons_;
+            hidden_layer hidden_neurons_;
             Neuron<T> output_neuron_;
             std::vector<T> network_inputs_;     //inputs will simply be a vector of the specified input type
             const bool feed_forward(std::vector<T> data_in);
@@ -44,10 +49,6 @@ namespace sb_nn{
             return false;
         }
         num_features_ = feature_num;
-        double rand_weight = 2;
-        //TODO: refactor this to handle case where there is/isnt a hidden layer
-        for (unsigned int i = 0; i < num_features_; ++i)
-            output_neuron_.add_neuron_input(NeuronInput<T>{rand_weight});
         return true;
     }
 
@@ -86,14 +87,16 @@ namespace sb_nn{
             double rand_bias = 2;
             //create neuron with random bias values
             Neuron<T> hidden_neuron(rand_bias, ActivationFunction::SIGMOID);
+            double rand_weight = 2;
             for (unsigned int i = 0; i < num_features_; ++i){  
                 //for each number of features in the input layer, add an input to the neuron
                 //double rand_weight = (double) rand()/(RAND_MAX);
-                double rand_weight = 2;
                 hidden_neuron.add_neuron_input(NeuronInput<T>{rand_weight});
             }
             //now add that initialized hidden neuron to the network
             hidden_neurons_.push_back(hidden_neuron);
+            //And add an input to the output neuron for each hidden neuron
+            output_neuron_.add_neuron_input(NeuronInput<T>{rand_weight});
         }
         return true;
     }
@@ -102,25 +105,26 @@ namespace sb_nn{
     template <typename T>
     const bool NeuralNet<T>::train_network(){
         //should check dimensionality of input data to ensure it is the proper dimensions...
-        std::cout << "Training data...." << std::endl;
+        std::cout << "Training network...." << std::endl;
         //assert(training_set_in_.size() == training_set_out_.size() && "Must have same number of input and output training data sets!");
         if (training_set_in_.size() <= 0 || training_set_out_.size() <= 0){
             std::cout << "No training data supplied!" << std::endl;
             return false;
         }
         assert(training_set_in_.size() == training_set_out_.size());
+        if (hidden_neurons_.size() <= 0){
+            //no hidden layer, add input equal to num features for the output neuron
+            double rand_weight = 2;
+            //TODO: refactor this to handle case where there is/isnt a hidden layer
+            for (unsigned int i = 0; i < num_features_; ++i)
+                output_neuron_.add_neuron_input(NeuronInput<T>{rand_weight});   //THE PROBLEM LIES HERE
+        }
         for (unsigned int i= 0; i < num_epochs_; ++i){
             for (size_t j = 0; j < training_set_in_.size(); ++j){
                 feed_forward(training_set_in_.at(j));
-                backpropagate(training_set_out_.at(j));
+                //backpropagate(training_set_out_.at(j));
             }
         }
-        std::cout << "final bias: " << output_neuron_.bias_ << std::endl;
-        for (auto &input : output_neuron_.neuron_inputs_)
-            std::cout << "Weight: " << input.weight << std::endl;
-
-        std::vector<T> testing_point{0, 1, 0};
-        //std::cout << feed_forward(input_weights_, testing_point, bias_);
         return true;
     } 
 
@@ -137,12 +141,16 @@ namespace sb_nn{
         } else {
             //activate hidden neurons and propagate to output layer
             //TODO
+            std::vector<T> hidden_outputs;
             for (auto &hidden_neuron : hidden_neurons_){
                 //Now we set the inputs for each hidden neuron
                 hidden_neuron.set_neuron_values(network_inputs);
                 //Now the hidden neurons have weights and values, should fire them.
                 hidden_neuron.activate();
+                hidden_outputs.push_back(hidden_neuron.activation_energy_);
             }
+            output_neuron_.set_neuron_values(hidden_outputs);
+            output_neuron_.activate();
         }
         //Now we need to set the neurons in the output layer to have the inputs of the neurons in the hidden layer
         return true;

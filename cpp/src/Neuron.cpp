@@ -23,6 +23,7 @@ const bool Neuron<T>::add_neuron_input(NeuronInput<T> input){
 
 template <typename T>
 const bool Neuron<T>::set_neuron_values(std::vector<T> values){
+    std::cout << "values: " << values.size() << " neuron inputs: " << neuron_inputs_.size() << std::endl;
     assert(values.size() == neuron_inputs_.size() && "Passed in values must have the same dimensions as the neuron inputs!");
     for (size_t i = 0; i < values.size(); i++){
         neuron_inputs_.at(i).value = values.at(i);

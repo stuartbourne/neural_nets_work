@@ -30,8 +30,6 @@ namespace sb_nn{
             std::vector<NeuronInput<T>> neuron_inputs_;      //Define the weights to the neuron
             const double sigmoid_d1(const double);
             const double sigmoid(const double);
-
-        protected:
             
         private:
             ActivationFunction activation_fn_;

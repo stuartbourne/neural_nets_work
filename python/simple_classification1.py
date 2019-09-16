@@ -15,7 +15,7 @@ weights = np.array([2.0, 2.0, 2.0])
 weights = weights.reshape(3, 1)
 #bias = np.random.rand(1)
 bias = 2.0
-lr = 0.05
+lr = 0.01
 
 def sigmoid(x):
     return 1/(1+np.exp(-x))
@@ -24,7 +24,7 @@ def sigmoid_der(x):
     return sigmoid(x) * (1 - sigmoid(x))
 
 #l now lets actually train
-for epoch in range(1):
+for epoch in range(20000):
     inputs = feature_set
 
     #feedforward step 1
@@ -49,5 +49,6 @@ for epoch in range(1):
 print("final bias:\n", bias)
 print("final weights:\n", weights)
 
-single_point = np.array([0, 1, 0])
+single_point = np.array([1, 1, 1])
 result = sigmoid(np.dot(single_point, weights) + bias)
+print(result)
