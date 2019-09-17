@@ -23,7 +23,6 @@ const bool Neuron<T>::add_neuron_input(NeuronInput<T> input){
 
 template <typename T>
 const bool Neuron<T>::set_neuron_values(std::vector<T> values){
-    std::cout << "values: " << values.size() << " neuron inputs: " << neuron_inputs_.size() << std::endl;
     assert(values.size() == neuron_inputs_.size() && "Passed in values must have the same dimensions as the neuron inputs!");
     for (size_t i = 0; i < values.size(); i++){
         neuron_inputs_.at(i).value = values.at(i);
@@ -44,9 +43,9 @@ const bool Neuron<T>::activate(){
         input_values.push_back(*input.value);
         input_weights.push_back(input.weight);
     }
-    T activation_in = dot<T>(input_weights, input_values) + bias_;
+    output_energy_ = dot<T>(input_weights, input_values);// + bias_;   //remove bias term for multilayered networks for simplicity
     //now compute activation energy TODO in future, use passed in activation type
-    activation_energy_ = sigmoid(activation_in);
+    activation_energy_ = sigmoid(output_energy_);
     return true;
 }
 

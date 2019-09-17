@@ -4,6 +4,7 @@
 #include <NeuronLayer.hpp>
 #include <stdlib.h>
 
+//TODO make NeuralNet a friend class of Neuron and make associated memebers protected/private
 namespace sb_nn{
     template <typename T>
     class NeuralNet{
@@ -40,6 +41,9 @@ namespace sb_nn{
             std::vector<T> network_inputs_;     //inputs will simply be a vector of the specified input type
             const bool feed_forward(std::vector<T> data_in);
             const bool backpropagate(T desired_output);
+            const bool get_output_gradient(Neuron<T> &hidden_neuron, Neuron<T> &output_neuron, T expected_out);
+            const bool get_hidden_gradient();
+            const bool adjust_network_weights(T expected_out);
     };
 
     template <typename T>
@@ -101,7 +105,6 @@ namespace sb_nn{
         return true;
     }
 
-
     template <typename T>
     const bool NeuralNet<T>::train_network(){
         //should check dimensionality of input data to ensure it is the proper dimensions...
@@ -115,14 +118,13 @@ namespace sb_nn{
         if (hidden_neurons_.size() <= 0){
             //no hidden layer, add input equal to num features for the output neuron
             double rand_weight = 2;
-            //TODO: refactor this to handle case where there is/isnt a hidden layer
             for (unsigned int i = 0; i < num_features_; ++i)
-                output_neuron_.add_neuron_input(NeuronInput<T>{rand_weight});   //THE PROBLEM LIES HERE
+                output_neuron_.add_neuron_input(NeuronInput<T>{rand_weight});   
         }
         for (unsigned int i= 0; i < num_epochs_; ++i){
             for (size_t j = 0; j < training_set_in_.size(); ++j){
                 feed_forward(training_set_in_.at(j));
-                //backpropagate(training_set_out_.at(j));
+                backpropagate(training_set_out_.at(j));
             }
         }
         return true;
@@ -140,19 +142,21 @@ namespace sb_nn{
             output_neuron_.activate();
         } else {
             //activate hidden neurons and propagate to output layer
-            //TODO
             std::vector<T> hidden_outputs;
             for (auto &hidden_neuron : hidden_neurons_){
                 //Now we set the inputs for each hidden neuron
                 hidden_neuron.set_neuron_values(network_inputs);
                 //Now the hidden neurons have weights and values, should fire them.
                 hidden_neuron.activate();
+                std::cout << "hidden_neuron_activation energy: " << hidden_neuron.activation_energy_ << std::endl;
                 hidden_outputs.push_back(hidden_neuron.activation_energy_);
             }
+            //Now we need to set the neurons in the output layer to have the inputs of the neurons in the hidden layer
             output_neuron_.set_neuron_values(hidden_outputs);
             output_neuron_.activate();
+            std::cout << "\noutput_neuron_activation energy: " << output_neuron_.activation_energy_ << "\n" << std::endl;
         }
-        //Now we need to set the neurons in the output layer to have the inputs of the neurons in the hidden layer
+
         return true;
     }
 
@@ -160,20 +164,72 @@ namespace sb_nn{
     const bool NeuralNet<T>::backpropagate(T desired_output){
         //for now we'll start with one hidden neuron
         //Calculate the output error relative to the output of the activation functions
-        if (hidden_neurons_.size() <= 0){
-            //TODO: backpropagate through hidden neurons
+        if (hidden_neurons_.size() > 0){
+            //TODO: backpropagate
+            adjust_network_weights(desired_output);
+        } else if (hidden_neurons_.size() <= 0){   
+            //TODO: Test this functionality, and also test to handle uninitialized hidden_neurons_ values.    
+            T error = output_neuron_.activation_energy_ - desired_output;
+            T dcost_dpred = error;
+            T dpred_dz = output_neuron_.sigmoid_d1(output_neuron_.activation_energy_);
+            T dcost_dz = dcost_dpred * dpred_dz;
+            //Now we've got the desired rate of change, lets apply it to our weights and biases
+            //now apply that calculated change to the weights and bias
+            for (auto &input : output_neuron_.neuron_inputs_){
+                input.weight -= learning_rate_ * *input.value * dcost_dz;
+            }
+            output_neuron_.bias_ -= learning_rate_ * dcost_dz;
         }
-        T error = output_neuron_.activation_energy_ - desired_output;
-        T dcost_dpred = error;
-        T dpred_dz = output_neuron_.sigmoid_d1(output_neuron_.activation_energy_);
-        T dcost_dz = dcost_dpred * dpred_dz;
-        //Now we've got the desired rate of change, lets apply it to our weights and biases
-        //now apply that calculated change to the weights and bias
-        for (auto &input : output_neuron_.neuron_inputs_){
-            input.weight -= learning_rate_ * *input.value * dcost_dz;
-        }
-        output_neuron_.bias_ -= learning_rate_ * dcost_dz;
+
         return true;
+    }
+
+    template <typename T>
+    const bool NeuralNet<T>::adjust_network_weights(T expected_out){
+        assert(output_neuron_.neuron_inputs_.size() == hidden_neurons_.size());
+        for (unsigned int i = 0; i < output_neuron_.neuron_inputs_.size(); ++i){
+            //first adjust output weights
+            Neuron<T> hidden_neuron = hidden_neurons_.at(i);
+            T dzOutput_dweight = *output_neuron_.neuron_inputs_.at(i).value;
+            T dactivationOut_dzOutput = hidden_neuron.sigmoid_d1(output_neuron_.output_energy_);    //double check this
+            T dcost_dactivationOut = (output_neuron_.activation_energy_ - expected_out);  
+            T dcost_dweightOut = dcost_dactivationOut * dactivationOut_dzOutput * dzOutput_dweight;        //get gradient via chain rule
+            std::cout << "Gradient multiplier for output weight " << i << " : " << dcost_dweightOut << std::endl;
+            //This has been mathematically checked
+            //now lets adjust the input->hidden weights
+            for (auto &hidden_input : hidden_neuron.neuron_inputs_){
+                if (hidden_input.value == std::nullopt){
+                    std::cerr << "Cannot change weight of hidden input with no value!\n";
+                    return false;
+                }
+                T dcost_dactivationHid = dcost_dactivationOut * dactivationOut_dzOutput * hidden_input.weight;
+                T dzHid_dweightHid = *hidden_input.value;
+                T dactivationHid_dzHid = hidden_neuron.sigmoid_d1(hidden_neuron.output_energy_);
+                T dcost_dweightHid = dactivationHid_dzHid * dzHid_dweightHid * dcost_dactivationHid;
+                std::cout << "Gradient multiplier for input of hidden neuron: " << i << " : " << dcost_dweightHid << "\n\n";
+            }
+        }
+        return true;
+    }
+
+    /*  brief:  Gets the gradient multiplier for the weights from the hidden to the output layer. 
+                The result from this function is to be multiplied by the learning rate and subtracted from hidden->output weight
+    */
+    template <typename T>
+    const bool NeuralNet<T>::get_output_gradient(Neuron<T> &hidden_neuron, Neuron<T> &output_neuron, T expected_out){
+        //phase 1 -> adjust weights from hidden to output
+        T doutput_dweight = hidden_neuron.activation_energy_;  //(x_i)
+
+
+        return false;
+    }
+
+    /** brief: Gets the gradient multiplier for the weights from the input to the hidden layer
+     *   
+     */
+    template <typename T>
+    const bool NeuralNet<T>::get_hidden_gradient(){
+        return false;
     }
 }
 #endif
