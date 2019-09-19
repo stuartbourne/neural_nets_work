@@ -8,10 +8,10 @@ np.random.seed(0)
 feature_set, labels1 = datasets.make_moons(100, noise=0.1)
 print(len(feature_set))
 plt.figure(figsize=(10, 7))
-feature_set = np.array([[0, 1]])#, [0, 0], [1, 1], [1, 0], [0, 1]])
+feature_set = np.array([[0, 1], [0, 0], [1, 1], [1, 0], [0, 1]])
 print(len(feature_set))
-labels = np.array([1])#, 0, 0, 1, 1])
-labels = labels.reshape(1, 1)
+labels = np.array([1, 0, 0, 1, 1])
+labels = labels.reshape(5, 1)
 #plt.scatter(feature_set[:, 0], feature_set[:, 1], c=labels1, cmap=plt.cm.winter)
 #x_test = np.arange(-2, 3, step=5/len(feature_set))
 #y_test = np.arange(-2, 3, step=5/len(feature_set))
@@ -21,7 +21,7 @@ labels = labels.reshape(1, 1)
 
 #weights to the hidden layer
 #wh = np.random.rand(len(feature_set[0]), 4)
-wh = np.array([2, 2])
+wh = np.array([2, 2, 2, 2])
 #weights to the output layer
 #wo = np.random.rand(4, 1)
 wo = np.array([2, 2, 2, 2])
@@ -46,7 +46,7 @@ def feed_forward(x_test, y_test, wh, wo):
     
     return ao_list
 
-for epoch in range(1):
+for epoch in range(20000):
     # feedforward
     zh = np.dot(feature_set[0], wh)
     ah = sigmoid(zh)

@@ -125,6 +125,7 @@ namespace sb_nn{
             for (size_t j = 0; j < training_set_in_.size(); ++j){
                 feed_forward(training_set_in_.at(j));
                 backpropagate(training_set_out_.at(j));
+                //double error = 1/2 * ((output_neuron_.activation_energy_ - training_set_out_.at(j))*(output_neuron_.activation_energy_ - training_set_out_.at(j)));
             }
         }
         return true;
@@ -148,13 +149,11 @@ namespace sb_nn{
                 hidden_neuron.set_neuron_values(network_inputs);
                 //Now the hidden neurons have weights and values, should fire them.
                 hidden_neuron.activate();
-                std::cout << "hidden_neuron_activation energy: " << hidden_neuron.activation_energy_ << std::endl;
                 hidden_outputs.push_back(hidden_neuron.activation_energy_);
             }
             //Now we need to set the neurons in the output layer to have the inputs of the neurons in the hidden layer
             output_neuron_.set_neuron_values(hidden_outputs);
             output_neuron_.activate();
-            std::cout << "\noutput_neuron_activation energy: " << output_neuron_.activation_energy_ << "\n" << std::endl;
         }
 
         return true;
@@ -194,7 +193,6 @@ namespace sb_nn{
             T dactivationOut_dzOutput = hidden_neuron.sigmoid_d1(output_neuron_.output_energy_);    //double check this
             T dcost_dactivationOut = (output_neuron_.activation_energy_ - expected_out);  
             T dcost_dweightOut = dcost_dactivationOut * dactivationOut_dzOutput * dzOutput_dweight;        //get gradient via chain rule
-            std::cout << "Gradient multiplier for output weight " << i << " : " << dcost_dweightOut << std::endl;
             //This has been mathematically checked
             //now lets adjust the input->hidden weights
             for (auto &hidden_input : hidden_neuron.neuron_inputs_){
@@ -206,8 +204,9 @@ namespace sb_nn{
                 T dzHid_dweightHid = *hidden_input.value;
                 T dactivationHid_dzHid = hidden_neuron.sigmoid_d1(hidden_neuron.output_energy_);
                 T dcost_dweightHid = dactivationHid_dzHid * dzHid_dweightHid * dcost_dactivationHid;
-                std::cout << "Gradient multiplier for input of hidden neuron: " << i << " : " << dcost_dweightHid << "\n\n";
+                hidden_input.weight -= dcost_dweightHid * learning_rate_;
             }
+            output_neuron_.neuron_inputs_.at(i).weight -= dcost_dweightOut * learning_rate_;
         }
         return true;
     }
@@ -219,8 +218,6 @@ namespace sb_nn{
     const bool NeuralNet<T>::get_output_gradient(Neuron<T> &hidden_neuron, Neuron<T> &output_neuron, T expected_out){
         //phase 1 -> adjust weights from hidden to output
         T doutput_dweight = hidden_neuron.activation_energy_;  //(x_i)
-
-
         return false;
     }
 

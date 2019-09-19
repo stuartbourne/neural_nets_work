@@ -31,15 +31,17 @@ namespace sb_nn{
             const bool add_neuron_input(NeuronInput<T> input);
             const bool set_neuron_values(std::vector<T> values);
             const bool activate();  //calculates the dot product of inputs/weights and passes through
-            double bias_;
-            double activation_energy_;
-            T output_energy_;
-            std::vector<NeuronInput<T>> neuron_inputs_;      //Define the weights to the neuron
             const double sigmoid_d1(const double);
             const double sigmoid(const double);
             
         private:
+            double bias_;
+            double activation_energy_;
+            T output_energy_;
+            std::vector<NeuronInput<T>> neuron_inputs_;      //Define the weights to the neuron
             ActivationFunction activation_fn_;
+            template <typename O>
+            friend class NeuralNet;
     };
 }
 #endif

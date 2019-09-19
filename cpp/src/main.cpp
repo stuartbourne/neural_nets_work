@@ -12,12 +12,12 @@ int main(int argc, char** argv){
     using namespace sb_nn;
     std::vector<std::vector<double>> training_data_in;
     training_data_in.push_back({0, 1});
-    // training_data_in.push_back({0, 0});
-    // training_data_in.push_back({1, 1});
-    // training_data_in.push_back({1, 0});
-    // training_data_in.push_back({0, 1});
-    std::vector<double> training_data_out{1};//, 0, 0, 1, 1};
-    NeuralNet<double> nn(1, 0.01);
+    training_data_in.push_back({0, 0});
+    training_data_in.push_back({1, 1});
+    training_data_in.push_back({1, 0});
+    training_data_in.push_back({0, 1});
+    std::vector<double> training_data_out{1, 0, 0, 1, 1};
+    NeuralNet<double> nn(100, 0.01);
     nn.set_feature_num(2);  //two input features
     nn.add_hidden_layer(4);  
     nn.set_training_data(training_data_in, training_data_out);

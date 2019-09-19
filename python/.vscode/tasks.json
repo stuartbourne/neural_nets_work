@@ -14,7 +14,7 @@
         {
             "label": "python",
             "type": "shell",
-            "command": "python3 ${workspaceRoot}/simple_classification2.py",
+            "command": "python3 ${workspaceRoot}/simple_classification3.py",
             "group": {
                 "kind": "build",
                 "isDefault": true
