@@ -53,10 +53,10 @@ int main(int argc, char** argv){
         training_data_out = {1, 0, 0, 1, 1};
         feature_num = 3;
     }
-    NeuralNetClassifier<double> nn(30000, 0.2);
+    NeuralNetClassifier<double> nn(2000, 0.2);
     nn.set_feature_num(feature_num);  //two input features
     nn.add_hidden_layer(6);  
-    nn.set_training_data(training_data_in, training_data_out);x 
+    nn.set_training_data(training_data_in, training_data_out); 
     nn.train_network();
     std::vector<double> sample_input{0, 1};
     std::cout << nn.fire_network(sample_input) << std::endl;

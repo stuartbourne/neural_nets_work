@@ -12,8 +12,9 @@
  * activation functions. This class should be used in conjunction with the NeuralNet class associated.
 */
 namespace sb_nn{
-    enum ActivationFunction : char {
+    enum class ActivationFunction : char {
         SIGMOID = 's',
+        SOFTMAX = 'm',
     };
     template <typename T>
     struct NeuronInput{

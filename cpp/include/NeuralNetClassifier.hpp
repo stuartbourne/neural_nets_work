@@ -6,59 +6,124 @@
 
 //TODO make NeuralNet a friend class of Neuron and make associated memebers protected/private
 namespace sb_nn{
+    enum class ClassifierType : int{
+        LINEAR = 1,
+        NONLINEAR = 2,
+        MULTICLASS = 3
+    };
     template <typename T>
     class NeuralNetClassifier{
-        typedef std::vector<Neuron<T>> hidden_layer;
+        typedef std::vector<Neuron<T>> neuron_layer;
         public:
-            NeuralNetClassifier(const int num_epochs, const double learning_rate) : 
-                                            num_epochs_(num_epochs), 
-                                            learning_rate_(learning_rate),
-                                            num_features_(0) {
-                                                double rand_bias = (double) rand()/(RAND_MAX);
-                                                output_neuron_ = Neuron<T>(rand_bias, ActivationFunction::SIGMOID);
-                                            };
-            const bool set_feature_num(const int feat_num);
-            const bool add_hidden_layer(const int neuron_num);
+            NeuralNetClassifier<T>(const int num_epochs, const double learning_rate, const ClassifierType network_type);
             const bool train_network();   //This uses the previously gathered input and output data sets to train the weights/bias
-            const bool set_training_data(   std::vector<std::vector<T>> input_training_data,
-                                            std::vector<T> output_training_data);
+            const bool set_training_data(   std::vector<std::vector<T>> &input_training_data,
+                                            std::vector<T> &output_training_data);
             const T fire_network(std::vector<T> input){
                 feed_forward(input);
-                return output_neuron_.activation_energy_;
+                if (num_outputs_ > 1){
+                    //TODO here
+                    return -1;
+                } else if (num_outputs_ == 1)
+                    return output_neurons_.at(0).activation_energy_;
             }
 
         private:
             int num_features_;
+            int num_outputs_;
+            int num_hidden_neurons_;
+            const ClassifierType network_type_;
             const int num_epochs_;
             const double learning_rate_;
             std::vector<std::vector<T>> training_set_in_;
             std::vector<T> training_set_out_;
-            // NeuronLayer<T> input_neurons_;
-            //NeuronLayer<T> hidden_neurons_;
-            // NeuronLayer<T> output_neurons_;
-            hidden_layer hidden_neurons_;
-            Neuron<T> output_neuron_;
+            neuron_layer hidden_neurons_;
+            neuron_layer output_neurons_;
             std::vector<T> network_inputs_;     //inputs will simply be a vector of the specified input type
             const bool feed_forward(std::vector<T> data_in);
             const bool backpropagate(T desired_output);
-            const bool get_output_gradient(Neuron<T> &hidden_neuron, Neuron<T> &output_neuron, T expected_out);
-            const bool get_hidden_gradient();
             const bool adjust_network_weights(T expected_out);
+            const bool createNetwork(const int num_features, const int num_hidden_neurons, const int num_outputs);
+            neuron_layer createLayer(const int num_inputs, const int num_neurons);
+
     };
 
-    template <typename T>
-    const bool NeuralNetClassifier<T>::set_feature_num(const int feature_num){
-        if (feature_num < 1){
-            std::cerr << "Feature number must be greater than or equal to 1!" << std::endl;
-            return false;
+    template <class T>
+    NeuralNetClassifier<T>::NeuralNetClassifier(const int num_epochs, const double learning_rate, const ClassifierType network_type){
+        num_epochs_ = num_epochs;
+        learning_rate_ = learning_rate;
+        network_type_ = network_type;
+        ActivationFunction output_fn = ActivationFunction::SIGMOID;
+        switch (network_type){
+            case (ClassifierType::LINEAR): 
+                std::cout << "linear, default inputs = 2, default outputs = 1" << std::endl;
+                //num inputs is two (can be modified), num outputs is one, no hidden layers, all activation functions are sigmoid
+                num_inputs_ = 2;
+                num_outputs_ = 1;
+                num_hidden_neurons_ = 0;
+                break;
+            case (ClassifierType::NONLINEAR) : 
+                std::cout << "nonlinear, default inputs = 2, default outputs = 1, nodes in hidden layer = 4" << std::endl;
+                //nonlinear, num inputs is still two (can be modified), num outputs is still one, hidden layers exist
+                num_inputs_ = 2;
+                num_outputs_ = 1;
+                num_hidden_neurons = 4;
+                break;
+            case (ClassifierType::MULTICLASS) : 
+                std::cout << "multi-class, default inputs 2, default outputs = 3, nodes in hidden layer = 4" << std::endl;
+                //multi class, num inputs defaults to two (can be modified), num outputs is variable, hidden layers exist
+                num_inputs_ = 2;
+                num_outputs_ = 3;
+                num_hidden_neurons_ = 4;
+                output_fn_ = ActivationFunction::SOFTMAX;
+                break;
+            default:
+                std::cout << "No network found for type specified" << std::endl;
+                num_inputs_ = -1;
+                num_outputs_ = -1;
+                num_hidden_neurons_ = -1;
+                break;
         }
-        num_features_ = feature_num;
+        if (createNetwork(num_inputs_, num_hidden_neurons, num_outputs_))
+            std::cout << "Network created successfully" << std::endl;
+        else
+            std::cerr << "Error creating network" << std::endl;
+    }
+
+    template <typename T>
+    const bool NeuralNetClassifier<T>::createNetwork(const int num_features, const int num_hidden_neurons, const int num_outputs){
+        assert(num_hidden_neurons >= 0 && "Num hidden neurons must be positive!");
+        if (num_hidden_neurons == 0){
+            //simple linear classifier, weights to outputs == num inputs, output function sigmoid
+            ouput_layer_ = createLayer(num_features, num_outputs);
+        } else {
+            //there exists a hidden layer, lets first create the number of hidden neurons
+            hidden_layer_ = createLayer(num_features, num_hidden_neurons);
+            output_layer_ = createLayer(num_hidden_neurons, num_outputs);
+        }
         return true;
     }
 
     template <typename T>
-    const bool NeuralNetClassifier<T>::set_training_data(  std::vector<std::vector<T>> input_training_data,
-                                                    std::vector<T> output_training_data){
+    neuron_layer NeuralNetClassifier<T>::createLayer(const int num_inputs, const int num_neurons){
+        assert(num_inputs >= 2 && "Num inputs must be at least 2!");
+        assert(num_neurons >= 1 && "Num neurons in layer must be at least 1!");
+        neuron_layer layer;
+        for (unsigned int i=  0; i < num_neurons; ++i){
+            double rand_bias = (double) rand()/(RAND_MAX);
+            Neuron<T> neuron(rand_bias, ActivationFunction::SIGMOID);
+            for (unsigned int j = 0; j < num_inputs; ++j){
+                double rand_weight = (double) rand()/(RAND_MAX);
+                neuron.add_neuron_input(NeuronInput<T>{rand_weight});
+            }
+            layer.push_back(output_neuron);
+        }
+        return layer;
+    }
+
+    template <typename T>
+    const bool NeuralNetClassifier<T>::set_training_data(  std::vector<std::vector<T>> &input_training_data,
+                                                    std::vector<T> &output_training_data){
         //check to make sure the dimensionality matches the amount of input lines
         assert(input_training_data.size() == output_training_data.size() && "Dimensionality of input data must match dimensionality of the output data!");
         for (std::vector<T> in : input_training_data){
@@ -76,37 +141,6 @@ namespace sb_nn{
     }
 
     template <typename T>
-    const bool NeuralNetClassifier<T>::add_hidden_layer(const int neuron_num){
-        if (num_features_ <= 0){
-            std::cerr << "Cannot initialize hidden neurons! Please call set_feature_num first!" << std::endl;
-            return false;
-        }
-        if (neuron_num < 0){
-            std::cerr << "Neuron number must be greater than or equal to 0!" << std::endl;
-            return false;
-        }
-        for (unsigned int i = 0; i < neuron_num; ++i){
-            //initialize hidden neuron list with random weights and biases yet.
-            double rand_bias = (double) rand()/ (RAND_MAX);
-            //double rand_bias = 2;
-            //create neuron with random bias values
-            Neuron<T> hidden_neuron(rand_bias, ActivationFunction::SIGMOID);
-            //double rand_weight = 2;
-            for (unsigned int i = 0; i < num_features_; ++i){  
-                //for each number of features in the input layer, add an input to the neuron
-                double rand_weight = (double) rand()/(RAND_MAX);
-                hidden_neuron.add_neuron_input(NeuronInput<T>{rand_weight});
-            }
-            //now add that initialized hidden neuron to the network
-            hidden_neurons_.push_back(hidden_neuron);
-            //And add an input to the output neuron for each hidden neuron
-            double rand_weight = (double) rand()/(RAND_MAX);
-            output_neuron_.add_neuron_input(NeuronInput<T>{rand_weight});
-        }
-        return true;
-    }
-
-    template <typename T>
     const bool NeuralNetClassifier<T>::train_network(){
         //should check dimensionality of input data to ensure it is the proper dimensions...
         std::cout << "Training network...." << std::endl;
@@ -119,10 +153,7 @@ namespace sb_nn{
         if (hidden_neurons_.size() <= 0){
             //no hidden layer, add input equal to num features for the output neuron
             //double rand_weight = 2;
-            for (unsigned int i = 0; i < num_features_; ++i){
-                double rand_weight = (double) rand()/(RAND_MAX);
-                output_neuron_.add_neuron_input(NeuronInput<T>{rand_weight});   
-            }
+            
         }
         for (unsigned int i= 0; i < num_epochs_; ++i){
             for (size_t j = 0; j < training_set_in_.size(); ++j){
@@ -134,32 +165,58 @@ namespace sb_nn{
         return true;
     } 
 
-
     template <typename T>
     const bool NeuralNetClassifier<T>::feed_forward(std::vector<T> network_inputs){ 
         //TODO refactor to put this somewhere else
         assert( network_inputs.size() == num_features_ && 
                 "Input training data must match number of network inputs!");
-        if (hidden_neurons_.size() == 0){
-            //No hidden neurons, so set output neuron inputs to be the network inputs
-            output_neuron_.set_neuron_values(network_inputs);
-            output_neuron_.activate();
-        } else {
-            //activate hidden neurons and propagate to output layer
-            std::vector<T> hidden_outputs;
-            for (auto &hidden_neuron : hidden_neurons_){
-                //Now we set the inputs for each hidden neuron
-                hidden_neuron.set_neuron_values(network_inputs);
-                //Now the hidden neurons have weights and values, should fire them.
-                hidden_neuron.activate();
-                hidden_outputs.push_back(hidden_neuron.activation_energy_);
-            }
-            //Now we need to set the neurons in the output layer to have the inputs of the neurons in the hidden layer
-            output_neuron_.set_neuron_values(hidden_outputs);
-            output_neuron_.activate();
+        bool retval = false;
+        switch (network_type_){
+            case(ClassifierType::LINEAR):
+                //No hidden neurons, so set output neuron inputs to be the network inputs
+                output_neuron_.set_neuron_values(network_inputs);
+                output_neuron_.activate();
+                retval = true;
+                break;
+            case(ClassifierType::NONLINEAR):
+                //activate hidden neurons and propagate to output layer
+                std::vector<T> hidden_outputs;
+                for (auto &hidden_neuron : hidden_neurons_){
+                    //Now we set the inputs for each hidden neuron
+                    hidden_neuron.set_neuron_values(network_inputs);
+                    //Now the hidden neurons have weights and values, should fire them.
+                    hidden_neuron.activate();
+                    hidden_outputs.push_back(hidden_neuron.activation_energy_);
+                }
+                //Since it is nonlinear, there will only be 1 output neuron, set the hidden outputs to be inputs
+                output_neurons_.at(0).set_neuron_values(hidden_outputs);
+                output_neurons_.at(0).activate();
+                retval = true;
+                break;
+            case(ClassifierType::MULTICLASS):
+                //activate hidden neurons and propagate to output layer
+                std::vector<T> hidden_outputs;
+                for (auto &hidden_neuron : hidden_neurons_){
+                    //Now we set the inputs for each hidden neuron
+                    hidden_neuron.set_neuron_values(network_inputs);
+                    //Now the hidden neurons have weights and values, should fire them.
+                    hidden_neuron.activate();
+                    hidden_outputs.push_back(hidden_neuron.activation_energy_);
+                }
+                //now since we have more than one output neuron, we will need to add the hidden outputs as inputs to each one
+                for (auto &output_neuron : output_neurons_){
+                    output_neuron.set_neuron_values(hidden_outputs);
+                    //TODO: find best way to do this with softmax since softmax function takes in a vector of output neurons
+                    output_neuron.activate();
+                }
+                retval = true;
+                break;
+            default:
+                std::cerr << "Cannot feed forward unknown network type!" << std::endl;
+                retval = false;
+                break;
         }
-
-        return true;
+        return retval;
     }
 
     template <typename T>
