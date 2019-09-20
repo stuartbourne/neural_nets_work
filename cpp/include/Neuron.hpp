@@ -41,7 +41,7 @@ namespace sb_nn{
             std::vector<NeuronInput<T>> neuron_inputs_;      //Define the weights to the neuron
             ActivationFunction activation_fn_;
             template <typename O>
-            friend class NeuralNet;
+            friend class NeuralNetClassifier;
     };
 }
 #endif

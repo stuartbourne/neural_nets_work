@@ -1,5 +1,5 @@
-#ifndef SBNEURALNET
-#define SBNEURALNET
+#ifndef SBNNCLASSIFIER
+#define SBNNCLASSIFIER
 #include <Neuron.hpp>
 #include <NeuronLayer.hpp>
 #include <stdlib.h>
@@ -7,14 +7,14 @@
 //TODO make NeuralNet a friend class of Neuron and make associated memebers protected/private
 namespace sb_nn{
     template <typename T>
-    class NeuralNet{
+    class NeuralNetClassifier{
         typedef std::vector<Neuron<T>> hidden_layer;
         public:
-            NeuralNet(const int num_epochs, const double learning_rate) : 
+            NeuralNetClassifier(const int num_epochs, const double learning_rate) : 
                                             num_epochs_(num_epochs), 
                                             learning_rate_(learning_rate),
                                             num_features_(0) {
-                                                double rand_bias = 2;
+                                                double rand_bias = (double) rand()/(RAND_MAX);
                                                 output_neuron_ = Neuron<T>(rand_bias, ActivationFunction::SIGMOID);
                                             };
             const bool set_feature_num(const int feat_num);
@@ -47,7 +47,7 @@ namespace sb_nn{
     };
 
     template <typename T>
-    const bool NeuralNet<T>::set_feature_num(const int feature_num){
+    const bool NeuralNetClassifier<T>::set_feature_num(const int feature_num){
         if (feature_num < 1){
             std::cerr << "Feature number must be greater than or equal to 1!" << std::endl;
             return false;
@@ -57,7 +57,7 @@ namespace sb_nn{
     }
 
     template <typename T>
-    const bool NeuralNet<T>::set_training_data(  std::vector<std::vector<T>> input_training_data,
+    const bool NeuralNetClassifier<T>::set_training_data(  std::vector<std::vector<T>> input_training_data,
                                                     std::vector<T> output_training_data){
         //check to make sure the dimensionality matches the amount of input lines
         assert(input_training_data.size() == output_training_data.size() && "Dimensionality of input data must match dimensionality of the output data!");
@@ -76,7 +76,7 @@ namespace sb_nn{
     }
 
     template <typename T>
-    const bool NeuralNet<T>::add_hidden_layer(const int neuron_num){
+    const bool NeuralNetClassifier<T>::add_hidden_layer(const int neuron_num){
         if (num_features_ <= 0){
             std::cerr << "Cannot initialize hidden neurons! Please call set_feature_num first!" << std::endl;
             return false;
@@ -87,26 +87,27 @@ namespace sb_nn{
         }
         for (unsigned int i = 0; i < neuron_num; ++i){
             //initialize hidden neuron list with random weights and biases yet.
-            //double rand_bias = (double) rand()/ (RAND_MAX);
-            double rand_bias = 2;
+            double rand_bias = (double) rand()/ (RAND_MAX);
+            //double rand_bias = 2;
             //create neuron with random bias values
             Neuron<T> hidden_neuron(rand_bias, ActivationFunction::SIGMOID);
-            double rand_weight = 2;
+            //double rand_weight = 2;
             for (unsigned int i = 0; i < num_features_; ++i){  
                 //for each number of features in the input layer, add an input to the neuron
-                //double rand_weight = (double) rand()/(RAND_MAX);
+                double rand_weight = (double) rand()/(RAND_MAX);
                 hidden_neuron.add_neuron_input(NeuronInput<T>{rand_weight});
             }
             //now add that initialized hidden neuron to the network
             hidden_neurons_.push_back(hidden_neuron);
             //And add an input to the output neuron for each hidden neuron
+            double rand_weight = (double) rand()/(RAND_MAX);
             output_neuron_.add_neuron_input(NeuronInput<T>{rand_weight});
         }
         return true;
     }
 
     template <typename T>
-    const bool NeuralNet<T>::train_network(){
+    const bool NeuralNetClassifier<T>::train_network(){
         //should check dimensionality of input data to ensure it is the proper dimensions...
         std::cout << "Training network...." << std::endl;
         //assert(training_set_in_.size() == training_set_out_.size() && "Must have same number of input and output training data sets!");
@@ -117,9 +118,11 @@ namespace sb_nn{
         assert(training_set_in_.size() == training_set_out_.size());
         if (hidden_neurons_.size() <= 0){
             //no hidden layer, add input equal to num features for the output neuron
-            double rand_weight = 2;
-            for (unsigned int i = 0; i < num_features_; ++i)
+            //double rand_weight = 2;
+            for (unsigned int i = 0; i < num_features_; ++i){
+                double rand_weight = (double) rand()/(RAND_MAX);
                 output_neuron_.add_neuron_input(NeuronInput<T>{rand_weight});   
+            }
         }
         for (unsigned int i= 0; i < num_epochs_; ++i){
             for (size_t j = 0; j < training_set_in_.size(); ++j){
@@ -133,7 +136,7 @@ namespace sb_nn{
 
 
     template <typename T>
-    const bool NeuralNet<T>::feed_forward(std::vector<T> network_inputs){ 
+    const bool NeuralNetClassifier<T>::feed_forward(std::vector<T> network_inputs){ 
         //TODO refactor to put this somewhere else
         assert( network_inputs.size() == num_features_ && 
                 "Input training data must match number of network inputs!");
@@ -160,7 +163,7 @@ namespace sb_nn{
     }
 
     template <typename T>
-    const bool NeuralNet<T>::backpropagate(T desired_output){
+    const bool NeuralNetClassifier<T>::backpropagate(T desired_output){
         //for now we'll start with one hidden neuron
         //Calculate the output error relative to the output of the activation functions
         if (hidden_neurons_.size() > 0){
@@ -184,7 +187,7 @@ namespace sb_nn{
     }
 
     template <typename T>
-    const bool NeuralNet<T>::adjust_network_weights(T expected_out){
+    const bool NeuralNetClassifier<T>::adjust_network_weights(T expected_out){
         assert(output_neuron_.neuron_inputs_.size() == hidden_neurons_.size());
         for (unsigned int i = 0; i < output_neuron_.neuron_inputs_.size(); ++i){
             //first adjust output weights
@@ -215,7 +218,7 @@ namespace sb_nn{
                 The result from this function is to be multiplied by the learning rate and subtracted from hidden->output weight
     */
     template <typename T>
-    const bool NeuralNet<T>::get_output_gradient(Neuron<T> &hidden_neuron, Neuron<T> &output_neuron, T expected_out){
+    const bool NeuralNetClassifier<T>::get_output_gradient(Neuron<T> &hidden_neuron, Neuron<T> &output_neuron, T expected_out){
         //phase 1 -> adjust weights from hidden to output
         T doutput_dweight = hidden_neuron.activation_energy_;  //(x_i)
         return false;
@@ -225,7 +228,7 @@ namespace sb_nn{
      *   
      */
     template <typename T>
-    const bool NeuralNet<T>::get_hidden_gradient(){
+    const bool NeuralNetClassifier<T>::get_hidden_gradient(){
         return false;
     }
 }
