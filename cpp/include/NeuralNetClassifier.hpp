@@ -25,7 +25,7 @@ namespace sb_nn{
                     //TODO here
                     return -1;
                 } else if (num_outputs_ == 1)
-                    return output_neurons_.at(0).activation_energy_;
+                    return output_layer_.at(0).activation_energy_;
             }
 
         private:
@@ -37,14 +37,15 @@ namespace sb_nn{
             const double learning_rate_;
             std::vector<std::vector<T>> training_set_in_;
             std::vector<T> training_set_out_;
-            neuron_layer hidden_neurons_;
-            neuron_layer output_neurons_;
+            neuron_layer hidden_layer_;
+            neuron_layer output_layer_;
             std::vector<T> network_inputs_;     //inputs will simply be a vector of the specified input type
             const bool feed_forward(std::vector<T> data_in);
             const bool backpropagate(T desired_output);
             const bool adjust_network_weights(T expected_out);
-            const bool createNetwork(const int num_features, const int num_hidden_neurons, const int num_outputs);
-            neuron_layer createLayer(const int num_inputs, const int num_neurons);
+            const bool createNetwork(   const int num_features, const int num_hidden_neurons, 
+                                        const int num_outputs, const ActivationFunction fn);
+            neuron_layer createLayer(const int num_inputs, const int num_neurons, const ActivationFunction output_fn);
 
     };
 
@@ -58,65 +59,67 @@ namespace sb_nn{
             case (ClassifierType::LINEAR): 
                 std::cout << "linear, default inputs = 2, default outputs = 1" << std::endl;
                 //num inputs is two (can be modified), num outputs is one, no hidden layers, all activation functions are sigmoid
-                num_inputs_ = 2;
+                num_features_ = 2;
                 num_outputs_ = 1;
                 num_hidden_neurons_ = 0;
                 break;
             case (ClassifierType::NONLINEAR) : 
                 std::cout << "nonlinear, default inputs = 2, default outputs = 1, nodes in hidden layer = 4" << std::endl;
                 //nonlinear, num inputs is still two (can be modified), num outputs is still one, hidden layers exist
-                num_inputs_ = 2;
+                num_features_ = 2;
                 num_outputs_ = 1;
-                num_hidden_neurons = 4;
+                num_hidden_neurons_ = 4;
                 break;
             case (ClassifierType::MULTICLASS) : 
                 std::cout << "multi-class, default inputs 2, default outputs = 3, nodes in hidden layer = 4" << std::endl;
                 //multi class, num inputs defaults to two (can be modified), num outputs is variable, hidden layers exist
-                num_inputs_ = 2;
+                num_features_ = 2;
                 num_outputs_ = 3;
                 num_hidden_neurons_ = 4;
-                output_fn_ = ActivationFunction::SOFTMAX;
+                output_fn = ActivationFunction::SOFTMAX;
                 break;
             default:
                 std::cout << "No network found for type specified" << std::endl;
-                num_inputs_ = -1;
+                num_features_ = -1;
                 num_outputs_ = -1;
                 num_hidden_neurons_ = -1;
                 break;
         }
-        if (createNetwork(num_inputs_, num_hidden_neurons, num_outputs_))
+        if (createNetwork(num_features_, num_hidden_neurons_, num_outputs_, output_fn))
             std::cout << "Network created successfully" << std::endl;
         else
             std::cerr << "Error creating network" << std::endl;
     }
 
     template <typename T>
-    const bool NeuralNetClassifier<T>::createNetwork(const int num_features, const int num_hidden_neurons, const int num_outputs){
+    const bool NeuralNetClassifier<T>::createNetwork(   const int num_features, const int num_hidden_neurons, 
+                                                        const int num_outputs, const ActivationFunction output_fn){
         assert(num_hidden_neurons >= 0 && "Num hidden neurons must be positive!");
         if (num_hidden_neurons == 0){
             //simple linear classifier, weights to outputs == num inputs, output function sigmoid
-            ouput_layer_ = createLayer(num_features, num_outputs);
+            output_layer_ = createLayer(num_features, num_outputs, output_fn);
         } else {
-            //there exists a hidden layer, lets first create the number of hidden neurons
-            hidden_layer_ = createLayer(num_features, num_hidden_neurons);
-            output_layer_ = createLayer(num_hidden_neurons, num_outputs);
+            //there exists a hidden layer, lets first create the number of hidden neurons, propagate activation
+            //down to output function
+            hidden_layer_ = createLayer(num_features, num_hidden_neurons, ActivationFunction::SIGMOID);
+            output_layer_ = createLayer(num_hidden_neurons, num_outputs, output_fn);
         }
         return true;
     }
 
     template <typename T>
-    neuron_layer NeuralNetClassifier<T>::createLayer(const int num_inputs, const int num_neurons){
+    typename NeuralNetClassifier<T>::neuron_layer NeuralNetClassifier<T>::createLayer(const int num_inputs, const int num_neurons, const ActivationFunction fn){
         assert(num_inputs >= 2 && "Num inputs must be at least 2!");
         assert(num_neurons >= 1 && "Num neurons in layer must be at least 1!");
         neuron_layer layer;
         for (unsigned int i=  0; i < num_neurons; ++i){
             double rand_bias = (double) rand()/(RAND_MAX);
-            Neuron<T> neuron(rand_bias, ActivationFunction::SIGMOID);
+            Neuron<T> neuron(rand_bias, fn);
             for (unsigned int j = 0; j < num_inputs; ++j){
                 double rand_weight = (double) rand()/(RAND_MAX);
                 neuron.add_neuron_input(NeuronInput<T>{rand_weight});
             }
-            layer.push_back(output_neuron);
+            layer.push_back(neuron);
         }
         return layer;
     }
@@ -150,7 +153,7 @@ namespace sb_nn{
             return false;
         }
         assert(training_set_in_.size() == training_set_out_.size());
-        if (hidden_neurons_.size() <= 0){
+        if (hidden_layer_.size() <= 0){
             //no hidden layer, add input equal to num features for the output neuron
             //double rand_weight = 2;
             
@@ -172,16 +175,16 @@ namespace sb_nn{
                 "Input training data must match number of network inputs!");
         bool retval = false;
         switch (network_type_){
+            std::vector<T> hidden_outputs;
             case(ClassifierType::LINEAR):
                 //No hidden neurons, so set output neuron inputs to be the network inputs
-                output_neuron_.set_neuron_values(network_inputs);
-                output_neuron_.activate();
+                output_layer_.at(0).set_neuron_values(network_inputs);
+                output_layer_.at(0).activate();
                 retval = true;
                 break;
             case(ClassifierType::NONLINEAR):
                 //activate hidden neurons and propagate to output layer
-                std::vector<T> hidden_outputs;
-                for (auto &hidden_neuron : hidden_neurons_){
+                for (auto &hidden_neuron : hidden_layer_){
                     //Now we set the inputs for each hidden neuron
                     hidden_neuron.set_neuron_values(network_inputs);
                     //Now the hidden neurons have weights and values, should fire them.
@@ -189,14 +192,13 @@ namespace sb_nn{
                     hidden_outputs.push_back(hidden_neuron.activation_energy_);
                 }
                 //Since it is nonlinear, there will only be 1 output neuron, set the hidden outputs to be inputs
-                output_neurons_.at(0).set_neuron_values(hidden_outputs);
-                output_neurons_.at(0).activate();
+                output_layer_.at(0).set_neuron_values(hidden_outputs);
+                output_layer_.at(0).activate();
                 retval = true;
                 break;
             case(ClassifierType::MULTICLASS):
                 //activate hidden neurons and propagate to output layer
-                std::vector<T> hidden_outputs;
-                for (auto &hidden_neuron : hidden_neurons_){
+                for (auto &hidden_neuron : hidden_layer_){
                     //Now we set the inputs for each hidden neuron
                     hidden_neuron.set_neuron_values(network_inputs);
                     //Now the hidden neurons have weights and values, should fire them.
@@ -204,7 +206,7 @@ namespace sb_nn{
                     hidden_outputs.push_back(hidden_neuron.activation_energy_);
                 }
                 //now since we have more than one output neuron, we will need to add the hidden outputs as inputs to each one
-                for (auto &output_neuron : output_neurons_){
+                for (auto &output_neuron : output_layer_){
                     output_neuron.set_neuron_values(hidden_outputs);
                     //TODO: find best way to do this with softmax since softmax function takes in a vector of output neurons
                     output_neuron.activate();
@@ -223,11 +225,12 @@ namespace sb_nn{
     const bool NeuralNetClassifier<T>::backpropagate(T desired_output){
         //for now we'll start with one hidden neuron
         //Calculate the output error relative to the output of the activation functions
-        if (hidden_neurons_.size() > 0){
+        if (hidden_layer_.size() > 0){
             //TODO: backpropagate
             adjust_network_weights(desired_output);
-        } else if (hidden_neurons_.size() <= 0){   
-            //TODO: Test this functionality, and also test to handle uninitialized hidden_neurons_ values.    
+        } else if (hidden_layer_.size() <= 0){   
+            /*
+            //TODO: Test this functionality, and also test to handle uninitialized hidden_layer_ values.    
             T error = output_neuron_.activation_energy_ - desired_output;
             T dcost_dpred = error;
             T dpred_dz = output_neuron_.sigmoid_d1(output_neuron_.activation_energy_);
@@ -238,6 +241,7 @@ namespace sb_nn{
                 input.weight -= learning_rate_ * *input.value * dcost_dz;
             }
             output_neuron_.bias_ -= learning_rate_ * dcost_dz;
+            */
         }
 
         return true;
@@ -245,10 +249,12 @@ namespace sb_nn{
 
     template <typename T>
     const bool NeuralNetClassifier<T>::adjust_network_weights(T expected_out){
-        assert(output_neuron_.neuron_inputs_.size() == hidden_neurons_.size());
+        /*
+        assert(output_neuron_.neuron_inputs_.size() == hidden_layer_.size());
         for (unsigned int i = 0; i < output_neuron_.neuron_inputs_.size(); ++i){
+            
             //first adjust output weights
-            Neuron<T> hidden_neuron = hidden_neurons_.at(i);
+            Neuron<T> hidden_neuron = hidden_layer_.at(i);
             T dzOutput_dweight = *output_neuron_.neuron_inputs_.at(i).value;
             T dactivationOut_dzOutput = hidden_neuron.sigmoid_d1(output_neuron_.output_energy_);    //double check this
             T dcost_dactivationOut = (output_neuron_.activation_energy_ - expected_out);  
@@ -267,26 +273,9 @@ namespace sb_nn{
                 hidden_input.weight -= dcost_dweightHid * learning_rate_;
             }
             output_neuron_.neuron_inputs_.at(i).weight -= dcost_dweightOut * learning_rate_;
-        }
+            
+        }*/
         return true;
-    }
-
-    /*  brief:  Gets the gradient multiplier for the weights from the hidden to the output layer. 
-                The result from this function is to be multiplied by the learning rate and subtracted from hidden->output weight
-    */
-    template <typename T>
-    const bool NeuralNetClassifier<T>::get_output_gradient(Neuron<T> &hidden_neuron, Neuron<T> &output_neuron, T expected_out){
-        //phase 1 -> adjust weights from hidden to output
-        T doutput_dweight = hidden_neuron.activation_energy_;  //(x_i)
-        return false;
-    }
-
-    /** brief: Gets the gradient multiplier for the weights from the input to the hidden layer
-     *   
-     */
-    template <typename T>
-    const bool NeuralNetClassifier<T>::get_hidden_gradient(){
-        return false;
     }
 }
 #endif
