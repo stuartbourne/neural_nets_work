@@ -15,7 +15,7 @@ namespace sb_nn{
     class NeuralNetClassifier{
         typedef std::vector<Neuron<T>> neuron_layer;
         public:
-            NeuralNetClassifier<T>(const int num_epochs, const double learning_rate, const ClassifierType network_type);
+            NeuralNetClassifier<T>(int num_epochs, double learning_rate, ClassifierType network_type);
             const bool train_network();   //This uses the previously gathered input and output data sets to train the weights/bias
             const bool set_training_data(   std::vector<std::vector<T>> &input_training_data,
                                             std::vector<T> &output_training_data);
@@ -26,15 +26,17 @@ namespace sb_nn{
                     return -1;
                 } else if (num_outputs_ == 1)
                     return output_layer_.at(0).activation_energy_;
+                else
+                    return -1;
             }
 
         private:
             int num_features_;
             int num_outputs_;
             int num_hidden_neurons_;
-            const ClassifierType network_type_;
-            const int num_epochs_;
-            const double learning_rate_;
+            ClassifierType network_type_;
+            int num_epochs_;
+            double learning_rate_;
             std::vector<std::vector<T>> training_set_in_;
             std::vector<T> training_set_out_;
             neuron_layer hidden_layer_;
@@ -50,7 +52,7 @@ namespace sb_nn{
     };
 
     template <class T>
-    NeuralNetClassifier<T>::NeuralNetClassifier(const int num_epochs, const double learning_rate, const ClassifierType network_type){
+    NeuralNetClassifier<T>::NeuralNetClassifier(int num_epochs, double learning_rate, ClassifierType network_type){
         num_epochs_ = num_epochs;
         learning_rate_ = learning_rate;
         network_type_ = network_type;
@@ -96,8 +98,8 @@ namespace sb_nn{
                                                         const int num_outputs, const ActivationFunction output_fn){
         assert(num_hidden_neurons >= 0 && "Num hidden neurons must be positive!");
         if (num_hidden_neurons == 0){
-            //simple linear classifier, weights to outputs == num inputs, output function sigmoid
-            output_layer_ = createLayer(num_features, num_outputs, output_fn);
+            //simple linear classifier, weights to outputs == num inputs, output function sigqmoid
+            output_layer_ = createLayer(num_features, num_outputs, ActivationFunction::SIGMOID);
         } else {
             //there exists a hidden layer, lets first create the number of hidden neurons, propagate activation
             //down to output function
@@ -174,8 +176,8 @@ namespace sb_nn{
         assert( network_inputs.size() == num_features_ && 
                 "Input training data must match number of network inputs!");
         bool retval = false;
+        std::vector<T> hidden_outputs;
         switch (network_type_){
-            std::vector<T> hidden_outputs;
             case(ClassifierType::LINEAR):
                 //No hidden neurons, so set output neuron inputs to be the network inputs
                 output_layer_.at(0).set_neuron_values(network_inputs);
@@ -229,19 +231,17 @@ namespace sb_nn{
             //TODO: backpropagate
             adjust_network_weights(desired_output);
         } else if (hidden_layer_.size() <= 0){   
-            /*
             //TODO: Test this functionality, and also test to handle uninitialized hidden_layer_ values.    
-            T error = output_neuron_.activation_energy_ - desired_output;
+            T error = output_layer_.at(0).activation_energy_ - desired_output;
             T dcost_dpred = error;
-            T dpred_dz = output_neuron_.sigmoid_d1(output_neuron_.activation_energy_);
+            T dpred_dz = output_layer_.at(0).sigmoid_d1(output_layer_.at(0).activation_energy_);
             T dcost_dz = dcost_dpred * dpred_dz;
             //Now we've got the desired rate of change, lets apply it to our weights and biases
             //now apply that calculated change to the weights and bias
-            for (auto &input : output_neuron_.neuron_inputs_){
+            for (auto &input : output_layer_.at(0).neuron_inputs_){
                 input.weight -= learning_rate_ * *input.value * dcost_dz;
             }
-            output_neuron_.bias_ -= learning_rate_ * dcost_dz;
-            */
+            output_layer_.at(0).bias_ -= learning_rate_ * dcost_dz;
         }
 
         return true;
@@ -249,15 +249,14 @@ namespace sb_nn{
 
     template <typename T>
     const bool NeuralNetClassifier<T>::adjust_network_weights(T expected_out){
-        /*
-        assert(output_neuron_.neuron_inputs_.size() == hidden_layer_.size());
-        for (unsigned int i = 0; i < output_neuron_.neuron_inputs_.size(); ++i){
+        assert(output_layer_.at(0).neuron_inputs_.size() == hidden_layer_.size());
+        for (unsigned int i = 0; i < output_layer_.at(0).neuron_inputs_.size(); ++i){
             
             //first adjust output weights
             Neuron<T> hidden_neuron = hidden_layer_.at(i);
-            T dzOutput_dweight = *output_neuron_.neuron_inputs_.at(i).value;
-            T dactivationOut_dzOutput = hidden_neuron.sigmoid_d1(output_neuron_.output_energy_);    //double check this
-            T dcost_dactivationOut = (output_neuron_.activation_energy_ - expected_out);  
+            T dzOutput_dweight = *output_layer_.at(0).neuron_inputs_.at(i).value;
+            T dactivationOut_dzOutput = hidden_neuron.sigmoid_d1(output_layer_.at(0).output_energy_);    //double check this
+            T dcost_dactivationOut = (output_layer_.at(0).activation_energy_ - expected_out);  
             T dcost_dweightOut = dcost_dactivationOut * dactivationOut_dzOutput * dzOutput_dweight;        //get gradient via chain rule
             //This has been mathematically checked
             //now lets adjust the input->hidden weights
@@ -272,9 +271,9 @@ namespace sb_nn{
                 T dcost_dweightHid = dactivationHid_dzHid * dzHid_dweightHid * dcost_dactivationHid;
                 hidden_input.weight -= dcost_dweightHid * learning_rate_;
             }
-            output_neuron_.neuron_inputs_.at(i).weight -= dcost_dweightOut * learning_rate_;
+            output_layer_.at(0).neuron_inputs_.at(i).weight -= dcost_dweightOut * learning_rate_;
             
-        }*/
+        }
         return true;
     }
 }
